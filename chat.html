@@ -77,6 +77,10 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        .user-item:hover { 
+            background-color: #f5f5f5; 
+        }
+
         .user-item:active { 
             background-color: #f0f0f0; 
         }
@@ -94,6 +98,15 @@
             position: absolute;
             bottom: 2px;
             right: 2px;
+        }
+
+        /* Search button styling */
+        #clearSearch {
+            transition: all 0.2s ease;
+        }
+
+        #clearSearch:hover {
+            transform: scale(1.1);
         }
 
         /* Mobile optimizations */
@@ -117,6 +130,21 @@
                 padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
             }
         }
+
+        /* Animation for typing indicator */
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+
+        .animate-bounce {
+            animation: bounce 1s infinite;
+        }
+
+        /* Smooth transitions */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body class="bg-white h-screen overflow-hidden">
@@ -130,10 +158,10 @@
                 <div class="flex items-center justify-between">
                     <h1 class="text-xl font-semibold">Sharvika Talks</h1>
                     <div class="flex space-x-3">
-                        <button onclick="openNewChat()" class="hover:bg-white/20 p-2 rounded-full transition">
+                        <button onclick="openNewChat()" class="hover:bg-white/20 p-2 rounded-full transition" title="New Chat">
                             <i class="fas fa-comment-dots"></i>
                         </button>
-                        <button onclick="openMenu()" class="hover:bg-white/20 p-2 rounded-full transition">
+                        <button onclick="openMenu()" class="hover:bg-white/20 p-2 rounded-full transition" title="Menu">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                     </div>
@@ -143,14 +171,23 @@
             <!-- Search -->
             <div class="p-2 bg-gray-50 border-b sticky top-0 z-10">
                 <div class="relative">
-                    <input type="text" id="searchInput" placeholder="Search or start new chat" 
-                        class="w-full pl-12 pr-4 py-2.5 bg-white rounded-lg border-none focus:outline-none text-sm shadow-sm">
+                    <input type="text" 
+                           id="searchInput" 
+                           placeholder="Search by username, name or email" 
+                           class="w-full pl-12 pr-10 py-2.5 bg-white rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-green-500 text-sm shadow-sm"
+                           autocomplete="off">
                     <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                    <button id="clearSearch" 
+                            class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 hidden" 
+                            onclick="clearSearch()"
+                            title="Clear search">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Chats/Users List -->
-            <div id="conversationsList" class="flex-1 overflow-y-auto scrollbar-thin hide-scrollbar">
+            <div id="conversationsList" class="flex-1 overflow-y-auto scrollbar-thin hide-scrollbar bg-white">
                 <!-- Loading state -->
                 <div id="loadingUsers" class="flex items-center justify-center py-8">
                     <div class="text-center">
@@ -180,28 +217,28 @@
             <div id="chatScreen" class="flex-1 flex-col hidden">
                 
                 <!-- Chat Header -->
-                <div class="whatsapp-green safe-top p-3 flex items-center justify-between text-white">
+                <div class="whatsapp-green safe-top p-3 flex items-center justify-between text-white shadow-md">
                     <div class="flex items-center flex-1 min-w-0">
                         <button onclick="closeChatMobile()" class="md:hidden mr-2 hover:bg-white/20 p-2 rounded-full -ml-2">
                             <i class="fas fa-arrow-left"></i>
                         </button>
                         <div class="relative mr-3 flex-shrink-0">
-                            <img id="chatAvatar" src="" class="w-10 h-10 rounded-full">
+                            <img id="chatAvatar" src="" alt="User Avatar" class="w-10 h-10 rounded-full object-cover">
                             <div id="chatOnlineDot" class="online-indicator hidden"></div>
                         </div>
-                        <div class="flex-1 min-w-0" onclick="openChatInfo()">
+                        <div class="flex-1 min-w-0 cursor-pointer" onclick="openChatInfo()">
                             <h3 id="chatUsername" class="font-semibold truncate"></h3>
                             <p id="chatStatus" class="text-xs text-white/80 truncate"></p>
                         </div>
                     </div>
                     <div class="flex space-x-1 flex-shrink-0 ml-2">
-                        <button onclick="startVideoCall()" class="hover:bg-white/20 p-2 rounded-full transition">
+                        <button onclick="startVideoCall()" class="hover:bg-white/20 p-2 rounded-full transition" title="Video Call">
                             <i class="fas fa-video"></i>
                         </button>
-                        <button onclick="startVoiceCall()" class="hover:bg-white/20 p-2 rounded-full transition">
+                        <button onclick="startVoiceCall()" class="hover:bg-white/20 p-2 rounded-full transition" title="Voice Call">
                             <i class="fas fa-phone"></i>
                         </button>
-                        <button onclick="openChatMenu()" class="hover:bg-white/20 p-2 rounded-full transition">
+                        <button onclick="openChatMenu()" class="hover:bg-white/20 p-2 rounded-full transition" title="More Options">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                     </div>
@@ -227,22 +264,26 @@
                 </div>
 
                 <!-- Message Input -->
-                <div class="bg-gray-100 safe-bottom p-2 flex items-end space-x-2">
-                    <button onclick="toggleEmojiPicker()" class="hover:bg-gray-200 p-2.5 rounded-full transition flex-shrink-0">
+                <div class="bg-gray-100 safe-bottom p-2 flex items-end space-x-2 shadow-lg">
+                    <button onclick="toggleEmojiPicker()" class="hover:bg-gray-200 p-2.5 rounded-full transition flex-shrink-0" title="Emoji">
                         <i class="fas fa-smile text-gray-600 text-xl"></i>
                     </button>
-                    <label class="hover:bg-gray-200 p-2.5 rounded-full transition cursor-pointer flex-shrink-0">
+                    <label class="hover:bg-gray-200 p-2.5 rounded-full transition cursor-pointer flex-shrink-0" title="Attach File">
                         <i class="fas fa-paperclip text-gray-600 text-xl"></i>
-                        <input type="file" id="fileInput" class="hidden" accept="image/*,video/*" onchange="handleFileUpload(event)">
+                        <input type="file" id="fileInput" class="hidden" accept="image/*,video/*,application/pdf" onchange="handleFileUpload(event)">
                     </label>
                     <div class="flex-1 bg-white rounded-full px-4 py-2 min-w-0">
-                        <textarea id="messageInput" rows="1" placeholder="Type a message"
-                            class="w-full bg-transparent focus:outline-none resize-none text-sm max-h-24"
-                            onkeydown="handleKeyPress(event)"
-                            oninput="autoResize(this)"></textarea>
+                        <textarea id="messageInput" 
+                                  rows="1" 
+                                  placeholder="Type a message"
+                                  class="w-full bg-transparent focus:outline-none resize-none text-sm max-h-24"
+                                  onkeydown="handleKeyPress(event)"
+                                  oninput="autoResize(this)"></textarea>
                     </div>
-                    <button id="sendBtn" onclick="sendMessage()" 
-                        class="whatsapp-green hover:whatsapp-green-dark p-2.5 rounded-full transition flex-shrink-0">
+                    <button id="sendBtn" 
+                            onclick="sendMessage()" 
+                            class="whatsapp-green hover:whatsapp-green-dark p-2.5 rounded-full transition flex-shrink-0 shadow-md"
+                            title="Send Message">
                         <i class="fas fa-paper-plane text-white text-xl"></i>
                     </button>
                 </div>
@@ -252,17 +293,17 @@
 
     <!-- Menu Modal -->
     <div id="menuModal" class="fixed inset-0 bg-black/50 hidden z-50" onclick="closeMenu()">
-        <div class="absolute top-16 right-4 bg-white rounded-lg shadow-2xl w-56 py-2" onclick="event.stopPropagation()">
-            <button onclick="openProfile()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center">
+        <div class="absolute top-16 right-4 bg-white rounded-lg shadow-2xl w-56 py-2 animate-fadeIn" onclick="event.stopPropagation()">
+            <button onclick="openProfile()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center transition">
                 <i class="fas fa-user w-6 text-gray-600"></i>
                 <span class="text-gray-800">Profile</span>
             </button>
-            <button onclick="openSettings()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center">
+            <button onclick="openSettings()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center transition">
                 <i class="fas fa-cog w-6 text-gray-600"></i>
                 <span class="text-gray-800">Settings</span>
             </button>
             <div class="border-t border-gray-200 my-2"></div>
-            <button onclick="logout()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center text-red-600">
+            <button onclick="logout()" class="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center text-red-600 transition">
                 <i class="fas fa-sign-out-alt w-6"></i>
                 <span>Log out</span>
             </button>
@@ -270,14 +311,14 @@
     </div>
 
     <!-- Profile Modal -->
-    <div id="profileModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md mx-auto overflow-hidden">
+    <div id="profileModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4" onclick="closeProfile()">
+        <div class="bg-white rounded-3xl w-full max-w-md mx-auto overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
             <div class="whatsapp-green p-6 text-white relative">
-                <button onclick="closeProfile()" class="absolute top-4 right-4 hover:bg-white/20 p-2 rounded-full">
+                <button onclick="closeProfile()" class="absolute top-4 right-4 hover:bg-white/20 p-2 rounded-full transition">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="text-center">
-                    <img id="profileAvatar" src="" class="w-32 h-32 rounded-full mx-auto border-4 border-white mb-4">
+                    <img id="profileAvatar" src="" alt="Profile" class="w-32 h-32 rounded-full mx-auto border-4 border-white mb-4 object-cover">
                     <h2 id="profileName" class="text-2xl font-bold">User Name</h2>
                     <p id="profileUsername" class="text-white/80"></p>
                 </div>
@@ -296,14 +337,14 @@
     </div>
 
     <!-- Chat Info Modal -->
-    <div id="chatInfoModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md mx-auto overflow-hidden">
+    <div id="chatInfoModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4" onclick="closeChatInfo()">
+        <div class="bg-white rounded-3xl w-full max-w-md mx-auto overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
             <div class="whatsapp-green p-6 text-white relative">
-                <button onclick="closeChatInfo()" class="absolute top-4 right-4 hover:bg-white/20 p-2 rounded-full">
+                <button onclick="closeChatInfo()" class="absolute top-4 right-4 hover:bg-white/20 p-2 rounded-full transition">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="text-center">
-                    <img id="infoAvatar" src="" class="w-32 h-32 rounded-full mx-auto border-4 border-white mb-4">
+                    <img id="infoAvatar" src="" alt="User" class="w-32 h-32 rounded-full mx-auto border-4 border-white mb-4 object-cover">
                     <h2 id="infoName" class="text-2xl font-bold">User Name</h2>
                     <p id="infoUsername" class="text-white/80"></p>
                 </div>
