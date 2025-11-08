@@ -13,7 +13,6 @@
         .ios-blur {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
         }
         
         .btn-ios {
@@ -21,18 +20,9 @@
             transition: all 0.2s ease;
         }
         
-        .btn-ios:hover {
-            background: #0051D5;
-        }
-        
-        .btn-ios:active {
-            transform: scale(0.97);
-        }
-        
-        .btn-ios:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-ios:hover { background: #0051D5; }
+        .btn-ios:active { transform: scale(0.97); }
+        .btn-ios:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .input-ios:focus {
             border-color: #007AFF;
@@ -51,6 +41,13 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .debug-console {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
         }
     </style>
 </head>
@@ -123,14 +120,6 @@
                             class="input-ios w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none transition"
                             placeholder="Min 6 characters">
                     </div>
-                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                        <label class="flex items-start cursor-pointer">
-                            <input type="checkbox" id="agreeTerms" required class="w-4 h-4 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500">
-                            <span class="ml-3 text-sm text-gray-700">
-                                I agree to the Terms and Privacy Policy
-                            </span>
-                        </label>
-                    </div>
                     <button type="submit" id="signupBtn"
                         class="btn-ios w-full text-white py-3.5 rounded-xl font-semibold shadow-lg shadow-blue-500/30 flex items-center justify-center">
                         <span id="signupBtnText">Create Account</span>
@@ -143,16 +132,41 @@
         <!-- Message Box -->
         <div id="messageBox" class="hidden mt-4 p-4 rounded-2xl shadow-lg"></div>
 
-        <!-- Debug Info (Remove in production) -->
-        <div class="mt-4 text-center">
-            <button onclick="testFirebase()" class="text-sm text-gray-500 hover:text-gray-700">
-                Test Firebase Connection
-            </button>
+        <!-- Debug Console -->
+        <div class="mt-4 bg-black text-green-400 p-4 rounded-2xl">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold">Debug Console</h3>
+                <button onclick="clearDebug()" class="text-xs bg-red-500 text-white px-2 py-1 rounded">Clear</button>
+            </div>
+            <div id="debugConsole" class="debug-console space-y-1">
+                <div>Waiting for action...</div>
+            </div>
         </div>
     </div>
 
     <!-- Firebase SDK -->
     <script type="module">
+        // Debug logger
+        function debugLog(message, type = 'info') {
+            const debugConsole = document.getElementById('debugConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400';
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = color;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            debugConsole.appendChild(logEntry);
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+            
+            console.log(message);
+        }
+
+        window.clearDebug = function() {
+            document.getElementById('debugConsole').innerHTML = '<div>Console cleared...</div>';
+        };
+
+        debugLog('Starting application...', 'info');
+
         // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { 
@@ -168,6 +182,8 @@
             getDoc 
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+        debugLog('Firebase modules imported successfully', 'success');
+
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCpI5q-zjeYcpeH5VWJudp9RY8_YGop6WI",
@@ -179,12 +195,20 @@
             measurementId: "G-7V316VZVPJ"
         };
 
+        debugLog('Initializing Firebase...', 'info');
+
         // Initialize Firebase
-        console.log('Initializing Firebase...');
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        console.log('Firebase initialized successfully!');
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            debugLog('✅ Firebase initialized successfully!', 'success');
+            debugLog(`Project: ${firebaseConfig.projectId}`, 'info');
+        } catch (error) {
+            debugLog(`❌ Firebase init error: ${error.message}`, 'error');
+            console.error('Full error:', error);
+        }
 
         // Show message function
         function showMessage(message, type = 'error') {
@@ -222,23 +246,33 @@
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
-            console.log('Login attempt for:', email);
+            debugLog(`Login attempt for: ${email}`, 'info');
             setLoading('login', true);
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log('Login successful:', userCredential.user.uid);
+                debugLog(`✅ Login successful! UID: ${userCredential.user.uid}`, 'success');
                 showMessage('Login successful! Redirecting...', 'success');
                 
                 // Check if user has completed setup
+                debugLog('Checking user profile...', 'info');
                 const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-                if (userDoc.exists() && userDoc.data().username) {
-                    window.location.href = 'chat.html';
+                
+                if (userDoc.exists()) {
+                    debugLog('User profile found', 'success');
+                    if (userDoc.data().username) {
+                        debugLog('Redirecting to chat...', 'success');
+                        window.location.href = 'chat.html';
+                    } else {
+                        debugLog('Redirecting to username setup...', 'info');
+                        window.location.href = 'username-setup.html';
+                    }
                 } else {
+                    debugLog('⚠️ User profile not found, creating...', 'info');
                     window.location.href = 'username-setup.html';
                 }
             } catch (error) {
-                console.error('Login error:', error);
+                debugLog(`❌ Login error: ${error.code} - ${error.message}`, 'error');
                 setLoading('login', false);
                 
                 let errorMessage = 'Login failed. Please try again.';
@@ -263,22 +297,29 @@
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
 
+            debugLog('=== SIGNUP STARTED ===', 'info');
+            debugLog(`Name: ${name}`, 'info');
+            debugLog(`Email: ${email}`, 'info');
+            debugLog(`Password length: ${password.length}`, 'info');
+
             if (!name) {
+                debugLog('❌ Name is empty', 'error');
                 showMessage('Please enter your name', 'error');
                 return;
             }
 
-            console.log('Signup attempt for:', email);
             setLoading('signup', true);
 
             try {
-                // Create user account
+                // Step 1: Create user account
+                debugLog('Step 1: Creating Firebase Auth user...', 'info');
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                console.log('User created:', user.uid);
+                debugLog(`✅ User created! UID: ${user.uid}`, 'success');
 
-                // Create user profile in Firestore
-                await setDoc(doc(db, 'users', user.uid), {
+                // Step 2: Create user profile in Firestore
+                debugLog('Step 2: Creating Firestore profile...', 'info');
+                const userProfile = {
                     uid: user.uid,
                     name: name,
                     email: email,
@@ -286,18 +327,36 @@
                     createdAt: new Date().toISOString(),
                     online: false,
                     lastSeen: new Date().toISOString()
-                });
+                };
+                
+                debugLog(`Profile data: ${JSON.stringify(userProfile)}`, 'info');
+                
+                await setDoc(doc(db, 'users', user.uid), userProfile);
+                debugLog('✅ Firestore profile created successfully!', 'success');
 
-                console.log('User profile created in Firestore');
+                // Step 3: Verify profile was saved
+                debugLog('Step 3: Verifying profile...', 'info');
+                const savedProfile = await getDoc(doc(db, 'users', user.uid));
+                if (savedProfile.exists()) {
+                    debugLog('✅ Profile verified in Firestore!', 'success');
+                } else {
+                    debugLog('⚠️ Warning: Profile not found after creation', 'error');
+                }
+
                 showMessage('Account created successfully! Redirecting...', 'success');
+                debugLog('=== SIGNUP COMPLETED ===', 'success');
                 
                 // Redirect to username setup
                 setTimeout(() => {
+                    debugLog('Redirecting to username-setup.html...', 'info');
                     window.location.href = 'username-setup.html';
-                }, 1000);
+                }, 1500);
 
             } catch (error) {
-                console.error('Signup error:', error);
+                debugLog(`❌ SIGNUP ERROR: ${error.code}`, 'error');
+                debugLog(`Error message: ${error.message}`, 'error');
+                debugLog(`Full error: ${JSON.stringify(error)}`, 'error');
+                
                 setLoading('signup', false);
                 
                 let errorMessage = 'Signup failed. Please try again.';
@@ -309,37 +368,23 @@
                     errorMessage = 'Invalid email address';
                 } else if (error.code === 'auth/network-request-failed') {
                     errorMessage = 'Network error. Check your internet connection.';
+                } else if (error.code === 'permission-denied') {
+                    errorMessage = 'Firestore permission denied. Check database rules.';
+                } else {
+                    errorMessage = `Error: ${error.code || error.message}`;
                 }
                 showMessage(errorMessage, 'error');
             }
         });
 
-        // Check auth state (but don't redirect immediately to allow login/signup)
+        // Check auth state
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                console.log('User already logged in:', user.uid);
-                // Only redirect if we're sure they're already set up
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
-                if (userDoc.exists() && userDoc.data().username) {
-                    console.log('Redirecting to chat...');
-                    window.location.href = 'chat.html';
-                } else if (userDoc.exists()) {
-                    console.log('Redirecting to username setup...');
-                    window.location.href = 'username-setup.html';
-                }
+                debugLog(`User already logged in: ${user.uid}`, 'info');
             } else {
-                console.log('No user logged in');
+                debugLog('No user logged in', 'info');
             }
         });
-
-        // Test Firebase Connection
-        window.testFirebase = function() {
-            console.log('Testing Firebase connection...');
-            console.log('Auth instance:', auth);
-            console.log('Firestore instance:', db);
-            console.log('Current user:', auth.currentUser);
-            showMessage('Firebase is connected! Check console for details.', 'success');
-        };
 
         // Make functions global
         window.switchTab = function(tab) {
@@ -366,7 +411,7 @@
             document.getElementById('messageBox').classList.add('hidden');
         };
 
-        console.log('Auth script loaded successfully!');
+        debugLog('✅ All scripts loaded successfully!', 'success');
     </script>
 </body>
 </html>
