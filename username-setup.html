@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Username - Sharvika Talks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .username-display {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        
+        .check-icon {
+            animation: checkPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes checkPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl mb-6 shadow-2xl">
+                <i class="fas fa-at text-white text-4xl"></i>
+            </div>
+            <h1 class="text-5xl font-bold text-gray-900 mb-3">Choose Your Username</h1>
+            <p class="text-xl text-gray-600">This is how others will find you</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass rounded-3xl p-10">
+            <form id="usernameForm" class="space-y-8">
+                <!-- Username Input -->
+                <div>
+                    <label class="block text-lg font-bold text-gray-800 mb-4">Your Username</label>
+                    <div class="relative">
+                        <div class="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 username-display">@</div>
+                        <input type="text" id="usernameInput" required
+                            pattern="^[a-zA-Z0-9_]{3,20}$"
+                            class="username-display w-full pl-20 pr-24 py-6 bg-white border-3 border-gray-200 rounded-2xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+                            placeholder="username"
+                            autocomplete="off"
+                            spellcheck="false">
+                        <div id="statusIcon" class="absolute right-6 top-1/2 -translate-y-1/2 hidden"></div>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <div id="usernameLength" class="text-sm text-gray-500">
+                            <span id="charCount">0</span>/20 characters
+                        </div>
+                        <div id="usernameStatus" class="text-sm font-semibold"></div>
+                    </div>
+                </div>
+
+                <!-- Validation Rules -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-100">
+                    <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-shield-check text-blue-600 mr-2"></i>
+                        Username Requirements
+                    </h3>
+                    <div class="space-y-3">
+                        <div id="rule1" class="flex items-center text-gray-600 transition-colors">
+                            <i class="fas fa-circle text-xs mr-3 text-gray-300"></i>
+                            <span class="text-sm">3-20 characters long</span>
+                        </div>
+                        <div id="rule2" class="flex items-center text-gray-600 transition-colors">
+                            <i class="fas fa-circle text-xs mr-3 text-gray-300"></i>
+                            <span class="text-sm">Only letters, numbers, and underscores</span>
+                        </div>
+                        <div id="rule3" class="flex items-center text-gray-600 transition-colors">
+                            <i class="fas fa-circle text-xs mr-3 text-gray-300"></i>
+                            <span class="text-sm">No spaces or special characters</span>
+                        </div>
+                        <div id="rule4" class="flex items-center text-gray-600 transition-colors">
+                            <i class="fas fa-circle text-xs mr-3 text-gray-300"></i>
+                            <span class="text-sm">Must be available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Availability Messages -->
+                <div id="availabilityMessages">
+                    <div id="checkingMessage" class="hidden bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 flex items-center">
+                        <div class="animate-spin mr-3">
+                            <i class="fas fa-spinner text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-blue-800">Checking availability</p>
+                            <p class="text-sm text-blue-600">Please wait</p>
+                        </div>
+                    </div>
+                    
+                    <div id="availableMessage" class="hidden bg-green-50 border-2 border-green-200 rounded-2xl p-4 flex items-center">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4 check-icon">
+                            <i class="fas fa-check text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-green-800 text-lg">Username is available</p>
+                            <p class="text-sm text-green-600">You can claim it now</p>
+                        </div>
+                    </div>
+                    
+                    <div id="takenMessage" class="hidden bg-red-50 border-2 border-red-200 rounded-2xl p-4">
+                        <div class="flex items-center mb-3">
+                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-times text-white text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-bold text-red-800 text-lg">Username is taken</p>
+                                <p class="text-sm text-red-600">Try one of our suggestions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggestions -->
+                <div id="suggestionsContainer" class="hidden">
+                    <label class="block text-lg font-bold text-gray-800 mb-4">
+                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                        Available Suggestions
+                    </label>
+                    <div id="suggestionsList" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button type="button" onclick="skipUsername()"
+                        class="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold text-lg transition-all">
+                        <i class="fas fa-forward mr-2"></i>
+                        Skip for Now
+                    </button>
+                    <button type="submit" id="continueBtn"
+                        class="flex-1 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                        Continue <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-600 mb-3">Step 1 of 2</p>
+            <div class="flex gap-2 max-w-xs mx-auto">
+                <div class="flex-1 h-2 bg-blue-600 rounded-full"></div>
+                <div class="flex-1 h-2 bg-gray-200 rounded-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/username.js"></script>
+    <script>
+        window.skipUsername = function() {
+            window.location.href = 'profile-setup.html';
+        };
+    </script>
+</body>
+</html>

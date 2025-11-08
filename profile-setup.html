@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile - Sharvika Talks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .avatar-upload {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .avatar-upload:hover {
+            transform: scale(1.05);
+        }
+        
+        .avatar-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .avatar-upload:hover .avatar-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-gray-900 mb-3">Complete Your Profile</h1>
+            <p class="text-xl text-gray-600">Add a photo and bio to personalize your account</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass rounded-3xl p-10">
+            <form id="profileForm" class="space-y-8">
+                <!-- Avatar Upload -->
+                <div class="text-center">
+                    <label for="avatarInput" class="avatar-upload inline-block">
+                        <img id="avatarPreview" src="https://ui-avatars.com/api/?name=User&size=150&background=3b82f6&color=ffffff" 
+                            class="w-40 h-40 rounded-full border-4 border-white shadow-xl">
+                        <div class="avatar-overlay">
+                            <div class="text-white text-center">
+                                <i class="fas fa-camera text-3xl mb-2"></i>
+                                <p class="text-sm font-semibold">Change Photo</p>
+                            </div>
+                        </div>
+                    </label>
+                    <input type="file" id="avatarInput" class="hidden" accept="image/*">
+                    <p class="text-sm text-gray-500 mt-3">Click to upload your photo</p>
+                </div>
+
+                <!-- Display Name -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-3">Display Name</label>
+                    <input type="text" id="displayNameInput" required
+                        class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition text-lg"
+                        placeholder="What should we call you?">
+                    <p class="text-sm text-gray-500 mt-2">This is the name others will see</p>
+                </div>
+
+                <!-- Bio -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-3">Bio (Optional)</label>
+                    <textarea id="bioInput" rows="4" maxlength="150"
+                        class="w-full px-5 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition resize-none"
+                        placeholder="Tell us a bit about yourself"></textarea>
+                    <div class="flex justify-between mt-2">
+                        <p class="text-sm text-gray-500">Share your interests or status</p>
+                        <p class="text-sm text-gray-400"><span id="bioCount">0</span>/150</p>
+                    </div>
+                </div>
+
+                <!-- Quick Bio Suggestions -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-3">Quick Suggestions</label>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="setBio('Available to chat')" 
+                            class="px-4 py-2 bg-white border-2 border-gray-200 hover:border-blue-500 rounded-full text-sm font-medium hover:text-blue-600 transition">
+                            Available to chat
+                        </button>
+                        <button type="button" onclick="setBio('Busy right now')" 
+                            class="px-4 py-2 bg-white border-2 border-gray-200 hover:border-blue-500 rounded-full text-sm font-medium hover:text-blue-600 transition">
+                            Busy right now
+                        </button>
+                        <button type="button" onclick="setBio('At work')" 
+                            class="px-4 py-2 bg-white border-2 border-gray-200 hover:border-blue-500 rounded-full text-sm font-medium hover:text-blue-600 transition">
+                            At work
+                        </button>
+                        <button type="button" onclick="setBio('In a meeting')" 
+                            class="px-4 py-2 bg-white border-2 border-gray-200 hover:border-blue-500 rounded-full text-sm font-medium hover:text-blue-600 transition">
+                            In a meeting
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button type="button" onclick="skipProfile()"
+                        class="flex-1 bg-gray-100 text-gray-700 py-4 rounded-2xl font-bold text-lg hover:bg-gray-200 transition">
+                        Skip for Now
+                    </button>
+                    <button type="submit"
+                        class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-2xl font-bold text-lg hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">
+                        Continue <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-600 mb-3">Step 2 of 2</p>
+            <div class="flex gap-2 max-w-xs mx-auto">
+                <div class="flex-1 h-2 bg-blue-600 rounded-full"></div>
+                <div class="flex-1 h-2 bg-blue-600 rounded-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/profile.js"></script>
+</body>
+</html>

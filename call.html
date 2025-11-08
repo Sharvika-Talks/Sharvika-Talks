@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Call - Sharvika Talks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;600;700;900&display=swap');
+        body { font-family: 'Lato', sans-serif; }
+        
+        .control-bar-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .control-bar-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-bar-btn.active {
+            background: #0e71eb;
+        }
+        
+        .control-bar-btn.danger:hover {
+            background: #d93025;
+        }
+        
+        .call-status-indicator {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 h-screen overflow-hidden">
+    
+    <div class="h-screen flex flex-col">
+        
+        <!-- Top Navigation Bar -->
+        <div class="bg-black/90 backdrop-blur-sm px-4 py-2 flex items-center justify-between border-b border-gray-800">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                        <i class="fas fa-video text-white text-sm"></i>
+                    </div>
+                    <span class="text-white font-semibold">Sharvika Talks</span>
+                </div>
+                <div class="h-6 w-px bg-gray-700"></div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span class="text-gray-400 text-sm">Secure Connection</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div id="callTimer" class="text-gray-400 text-sm font-medium">00:00</div>
+                <button class="bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded text-white text-sm transition">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Video Area -->
+        <div class="flex-1 relative bg-black">
+            <!-- Remote Video -->
+            <video id="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+            
+            <!-- Local Video (PiP) -->
+            <div class="absolute top-4 right-4 w-48 h-36 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl z-10">
+                <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover"></video>
+                <div class="absolute bottom-2 left-2 bg-black/70 px-2 py-1 rounded">
+                    <span class="text-white text-xs font-medium">You</span>
+                </div>
+            </div>
+            
+            <!-- Connection Quality -->
+            <div class="absolute top-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center space-x-2 z-10">
+                <div class="flex space-x-0.5">
+                    <div class="w-1 h-3 bg-green-400 rounded-full"></div>
+                    <div class="w-1 h-4 bg-green-400 rounded-full"></div>
+                    <div class="w-1 h-5 bg-green-400 rounded-full"></div>
+                    <div class="w-1 h-6 bg-green-400 rounded-full"></div>
+                </div>
+                <span class="text-white text-xs font-medium">Excellent</span>
+            </div>
+            
+            <!-- Participant Name -->
+            <div class="absolute bottom-24 left-4 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg z-10">
+                <span id="participantName" class="text-white font-medium">Connecting...</span>
+            </div>
+        </div>
+        
+        <!-- Bottom Control Bar -->
+        <div class="bg-gradient-to-t from-black/95 to-black/80 backdrop-blur-sm px-4 py-3 border-t border-gray-800">
+            <div class="flex items-center justify-between max-w-7xl mx-auto">
+                
+                <!-- Left Controls -->
+                <div class="flex items-center space-x-1">
+                    <div id="muteBtn" onclick="toggleMute()" class="control-bar-btn text-white">
+                        <i class="fas fa-microphone text-xl"></i>
+                        <span class="text-xs">Mute</span>
+                    </div>
+                    <div class="w-px h-8 bg-gray-700 mx-1"></div>
+                    <div id="videoBtn" onclick="toggleVideo()" class="control-bar-btn text-white">
+                        <i class="fas fa-video text-xl"></i>
+                        <span class="text-xs">Stop Video</span>
+                    </div>
+                </div>
+                
+                <!-- Center Controls -->
+                <div class="flex items-center space-x-1">
+                    <div class="control-bar-btn text-white">
+                        <i class="fas fa-desktop text-xl"></i>
+                        <span class="text-xs">Share Screen</span>
+                    </div>
+                    <div class="control-bar-btn text-white">
+                        <i class="fas fa-comment-alt text-xl"></i>
+                        <span class="text-xs">Chat</span>
+                    </div>
+                </div>
+                
+                <!-- Right Controls -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="endCall()" class="control-bar-btn danger text-white">
+                        <i class="fas fa-phone-slash text-xl"></i>
+                        <span class="text-xs">End</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/webrtc.js"></script>
+</body>
+</html>
